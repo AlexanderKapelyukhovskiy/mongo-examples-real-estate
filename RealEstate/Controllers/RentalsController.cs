@@ -17,7 +17,9 @@ namespace RealEstate.Controllers
 
         public ActionResult Index(RentalsFilter filters)
         {
-            MongoCursor<Rental> rentals = FilterRentals(filters);
+            MongoCursor<Rental> rentals = FilterRentals(filters)
+                .SetSortOrder(SortBy<Rental>.Ascending(r => r.Price));
+
             var model = new RentalsList
             {
                 Rentals = rentals,
