@@ -4,10 +4,8 @@ using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
 using RealEstate.App_Start;
 using RealEstate.Rentals;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 
 namespace RealEstate.Controllers
@@ -84,6 +82,11 @@ namespace RealEstate.Controllers
         {
             Context.Rentals.Remove(Query.EQ("_id", new ObjectId(id)));
             return RedirectToAction("Index");
+        }
+
+        public string PriceDistribution()
+        {
+            return new QueryPriceDistribution().Run(Context.Rentals).ToJson();
         }
     }
 }
