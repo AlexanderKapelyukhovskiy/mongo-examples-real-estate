@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using RealEstate.App_Start;
 using RealEstate.Rentals;
@@ -14,10 +15,26 @@ namespace RealEstate.Controllers
     {
         public readonly RealEstateContext Context = new RealEstateContext();
 
-        public ActionResult Index()
+        public ActionResult Index(RentalsFilter filters)
         {
-            var rentals = Context.Rentals.FindAll();
-            return View(rentals);
+            MongoCursor<Rental> rentals = FilterRentals(filters);
+            var model = new RentalsList
+            {
+                Rentals = rentals,
+                Filters = filters
+            };
+            return View(model);
+        }
+
+        private MongoCursor<Rental> FilterRentals(RentalsFilter filters)
+        {
+            if (filters == null || filters.PriceLimit.HasValue == false)
+            {
+                return Context.Rentals.FindAll();
+            }
+            var query = Query<Rental>.LTE(r => r.Price, filters.PriceLimit);
+            return Context.Rentals.Find(query);
+            
         }
 
         public ActionResult Post()

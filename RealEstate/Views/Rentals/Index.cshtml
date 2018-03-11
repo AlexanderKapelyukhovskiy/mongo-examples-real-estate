@@ -1,4 +1,4 @@
-﻿@model IEnumerable<RealEstate.Rentals.Rental>
+﻿@model RealEstate.Rentals.RentalsList
 
 @{
     ViewBag.Title = "Index";
@@ -7,30 +7,36 @@
 
 <h2>Rental Listings</h2>
 
+@using (Html.BeginForm())
+{
+    <label for="PriceLimit"></label>
+    <input type="text" name="PriceLimit" value="@Model.Filters.PriceLimit"/>
+    <input type="submit" value="Search"/>
+}
+
 <p>
     @Html.ActionLink("Post Rental", "Post")
 </p>
 <table class="table">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.Description)
+            Description
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.NumberOfRooms)
+            NumberOfRooms
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Address)
+            Address
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Price)
+            Price
         </th>
         <th>
             Last Adjustment
         </th>
-        <th></th>
     </tr>
 
-@foreach (var item in Model) {
+@foreach (var item in Model.Rentals) {
     <tr>
         <td>
             @Html.DisplayFor(modelItem => item.Description)
