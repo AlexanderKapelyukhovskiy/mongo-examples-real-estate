@@ -112,7 +112,7 @@ namespace RealEstate.Controllers
 
         public ActionResult GetImage(string id)
         {
-            var image = Context.Database.GridFS.FindOneById(new ObjectId(id));
+            var image = Context.Database.GridFS.FindOneById(id);
             if(image == null)
             {
                 return HttpNotFound();
