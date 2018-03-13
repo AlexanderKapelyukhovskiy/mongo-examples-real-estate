@@ -1,11 +1,13 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
+using MongoDB.Driver.GridFS;
 using MongoDB.Driver.Linq;
 using RealEstate.App_Start;
 using RealEstate.Rentals;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 
 namespace RealEstate.Controllers
@@ -82,6 +84,40 @@ namespace RealEstate.Controllers
         {
             Context.Rentals.Remove(Query.EQ("_id", new ObjectId(id)));
             return RedirectToAction("Index");
+        }
+
+        public ActionResult AttachImage(string id)
+        {
+            var rental = GetRental(id);
+            return View(rental);
+        }
+
+        [HttpPost]
+        public ActionResult AttachImage(string id, HttpPostedFileBase file)
+        {
+            var rental = GetRental(id);
+
+            rental.ImageId = ObjectId.GenerateNewId().ToString();
+            Context.Rentals.Save(rental);
+
+            var options = new MongoGridFSCreateOptions
+            {
+                Id = rental.ImageId,
+                ContentType = file.ContentType
+            };
+            Context.Database.GridFS.Upload(file.InputStream, file.FileName, options);
+
+            return RedirectToAction("Index");
+        }
+
+        public ActionResult GetImage(string id)
+        {
+            var image = Context.Database.GridFS.FindOneById(new ObjectId(id));
+            if(image == null)
+            {
+                return HttpNotFound();
+            }
+            return File(image.OpenRead(), image.ContentType);
         }
 
         public string PriceDistribution()

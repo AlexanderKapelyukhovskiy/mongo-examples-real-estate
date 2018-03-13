@@ -16,6 +16,7 @@ namespace RealEstate.Rentals
 
         [BsonRepresentation(BsonType.Double)]
         public decimal Price { get; set; }
+        public string ImageId { get; internal set; }
 
         public List<PriceAdjustment> Adjustments = new List<PriceAdjustment>();
 
@@ -37,6 +38,11 @@ namespace RealEstate.Rentals
             var adjastment = new PriceAdjustment(adjustPrice, Price);
             Adjustments.Add(adjastment);
             Price = adjustPrice.NewPrice;
+        }
+
+        public bool HasImage()
+        {
+            return string.IsNullOrWhiteSpace(ImageId) == false;
         }
     }
 }
