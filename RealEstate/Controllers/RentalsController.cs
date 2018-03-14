@@ -5,6 +5,7 @@ using MongoDB.Driver.GridFS;
 using MongoDB.Driver.Linq;
 using RealEstate.App_Start;
 using RealEstate.Rentals;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -96,7 +97,24 @@ namespace RealEstate.Controllers
         public ActionResult AttachImage(string id, HttpPostedFileBase file)
         {
             var rental = GetRental(id);
+            if (rental.HasImage())
+            {
+                DeleteImage(rental);
+            }
+            StoreImage(file, rental);
 
+            return RedirectToAction("Index");
+        }
+
+        private void DeleteImage(Rental rental)
+        {
+            Context.Database.GridFS.DeleteById(rental.ImageId);
+            rental.ImageId = null;
+            Context.Rentals.Save(rental);
+        }
+
+        private void StoreImage(HttpPostedFileBase file, Rental rental)
+        {
             rental.ImageId = ObjectId.GenerateNewId().ToString();
             Context.Rentals.Save(rental);
 
@@ -106,8 +124,6 @@ namespace RealEstate.Controllers
                 ContentType = file.ContentType
             };
             Context.Database.GridFS.Upload(file.InputStream, file.FileName, options);
-
-            return RedirectToAction("Index");
         }
 
         public ActionResult GetImage(string id)
