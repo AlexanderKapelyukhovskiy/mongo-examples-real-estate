@@ -2,12 +2,9 @@
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.GridFS;
-using MongoDB.Driver.Linq;
 using RealEstate.App_Start;
 using RealEstate.Rentals;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
@@ -18,10 +15,15 @@ namespace RealEstate.Controllers
         public readonly RealEstateContext Context = new RealEstateContext();
         private readonly RealEstateContextNewApi ContextNew = new RealEstateContextNewApi();
 
-        public ActionResult Index(RentalsFilter filters)
+        public async Task<ActionResult> Index(RentalsFilter filters)
         {
-            //IEnumerable<Rental> rentals = FilterRentals(filters);
-            var rentals = ContextNew.Rentals.Find(new BsonDocument()).ToList();
+            FilterDefinition<Rental> filterDefinition = filters.ToFilterDefinitio();
+
+            var rentals = await ContextNew.Rentals
+                .Find(filterDefinition)
+                //.Sort(Builders<Rental>.Sort.Ascending(r => r.Price))
+                .SortBy(r => r.Price)
+                .ToListAsync();
 
             var model = new RentalsList
             {
@@ -29,24 +31,6 @@ namespace RealEstate.Controllers
                 Filters = filters
             };
             return View(model);
-        }
-
-        private IEnumerable<Rental> FilterRentals(RentalsFilter filters)
-        {
-            IQueryable<Rental> rentals = Context.Rentals.AsQueryable().OrderBy(r => r.Price);
-
-            if(filters.MinimumRooms.HasValue)
-            {
-                rentals = rentals.Where(r => r.NumberOfRooms >= filters.MinimumRooms);
-            }
-
-            if (filters.PriceLimit.HasValue)
-            {
-                var query = Query<Rental>.LTE(r => r.Price, filters.PriceLimit);
-                rentals = rentals.Where(r => query.Inject());
-            }
-
-            return rentals;
         }
 
         public ActionResult Post()

@@ -71,7 +71,9 @@
     <Compile Include="BsonDocumentTests.cs" />
     <Compile Include="PocoTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Quering\CreatingQueryDocuments.cs" />
     <Compile Include="Rentals\RentalTests.cs" />
+    <Compile Include="Updates\UpdateDocument.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
