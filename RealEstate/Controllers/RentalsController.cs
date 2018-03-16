@@ -67,7 +67,11 @@ namespace RealEstate.Controllers
         {
             var rental = GetRental(id);
             rental.AdjustPrice(adjustPrice);
-            await ContextNew.Rentals.ReplaceOneAsync(r => r.Id == id, rental);
+            var options = new UpdateOptions
+            {
+                IsUpsert = true
+            };
+            await ContextNew.Rentals.ReplaceOneAsync(r => r.Id == id, rental, options);
             //Context.Rentals.Save(rental);
             return RedirectToAction("Index");
         }
