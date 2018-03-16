@@ -23,6 +23,7 @@ namespace RealEstate.Controllers
                 .Find(filterDefinition)
                 //.Sort(Builders<Rental>.Sort.Ascending(r => r.Price))
                 .SortBy(r => r.Price)
+                .ThenByDescending(r => r.NumberOfRooms)
                 .ToListAsync();
 
             var model = new RentalsList
