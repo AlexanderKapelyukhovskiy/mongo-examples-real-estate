@@ -40,10 +40,10 @@ namespace RealEstate.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post(PostRental postalRental)
+        public async Task<ActionResult> Post(PostRental postalRental)
         {
             var rental = new Rental(postalRental);
-            ContextNew.Rentals.InsertOne(rental);
+            await ContextNew.Rentals.InsertOneAsync(rental);
 
             return RedirectToAction("Index");
         }
