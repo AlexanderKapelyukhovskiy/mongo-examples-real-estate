@@ -63,11 +63,26 @@ namespace RealEstate.Controllers
         }
 
         [HttpPost]
-        public ActionResult AdjustPrice(string id, AdjustPrice adjustPrice)
+        public async Task<ActionResult> AdjustPrice(string id, AdjustPrice adjustPrice)
         {
             var rental = GetRental(id);
             rental.AdjustPrice(adjustPrice);
-            ContextNew.Rentals.ReplaceOne(r => r.Id == id, rental);
+            await ContextNew.Rentals.ReplaceOneAsync(r => r.Id == id, rental);
+            //Context.Rentals.Save(rental);
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> AdjustPriceWithModifications(string id, AdjustPrice adjustPrice)
+        //public async Task<ActionResult> AdjustPrice(string id, AdjustPrice adjustPrice)
+        {
+            var rental = GetRental(id);
+            var adjustment = new PriceAdjustment(adjustPrice, rental.Price);
+            var modification = Builders<Rental>.Update
+                .Push(r => r.Adjustments, adjustment)
+                .Set(r => r.Price, adjustPrice.NewPrice);
+            await ContextNew.Rentals.UpdateOneAsync(r => r.Id == id, modification);
+
             //Context.Rentals.Save(rental);
             return RedirectToAction("Index");
         }
