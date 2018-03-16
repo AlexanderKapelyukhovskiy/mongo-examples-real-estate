@@ -16,10 +16,12 @@ namespace RealEstate.Controllers
     public class RentalsController : Controller
     {
         public readonly RealEstateContext Context = new RealEstateContext();
+        private readonly RealEstateContextNewApi ContextNew = new RealEstateContextNewApi();
 
         public ActionResult Index(RentalsFilter filters)
         {
-            IEnumerable<Rental> rentals = FilterRentals(filters);
+            //IEnumerable<Rental> rentals = FilterRentals(filters);
+            var rentals = ContextNew.Rentals.Find(new BsonDocument()).ToList();
 
             var model = new RentalsList
             {
