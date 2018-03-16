@@ -67,7 +67,8 @@ namespace RealEstate.Controllers
         {
             var rental = GetRental(id);
             rental.AdjustPrice(adjustPrice);
-            Context.Rentals.Save(rental);
+            ContextNew.Rentals.ReplaceOne(r => r.Id == id, rental);
+            //Context.Rentals.Save(rental);
             return RedirectToAction("Index");
         }
 
