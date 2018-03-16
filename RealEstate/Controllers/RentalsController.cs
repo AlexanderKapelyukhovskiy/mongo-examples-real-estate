@@ -43,7 +43,7 @@ namespace RealEstate.Controllers
         public ActionResult Post(PostRental postalRental)
         {
             var rental = new Rental(postalRental);
-            Context.Rentals.Insert(rental);
+            ContextNew.Rentals.InsertOne(rental);
 
             return RedirectToAction("Index");
         }
