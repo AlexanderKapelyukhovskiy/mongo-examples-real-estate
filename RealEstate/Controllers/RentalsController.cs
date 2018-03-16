@@ -4,6 +4,7 @@ using MongoDB.Driver.Builders;
 using MongoDB.Driver.GridFS;
 using RealEstate.App_Start;
 using RealEstate.Rentals;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -22,6 +23,15 @@ namespace RealEstate.Controllers
             var rentals = await ContextNew.Rentals
                 .Find(filterDefinition)
                 //.Sort(Builders<Rental>.Sort.Ascending(r => r.Price))
+                .Project(r => new RentalViewModel
+                {
+                    Id = r.Id,
+                    Description = r.Description,
+                    NumberOfRooms = r.NumberOfRooms,
+                    Price = r.Price,
+                    Address = string.Join("\n", r.Address),
+                    Adjustments = r.Adjustments.Select(a => a.Describe()).LastOrDefault()
+                })
                 .SortBy(r => r.Price)
                 .ThenByDescending(r => r.NumberOfRooms)
                 .ToListAsync();
@@ -91,9 +101,9 @@ namespace RealEstate.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult Delete(string id)
+        public async Task<ActionResult> Delete(string id)
         {
-            Context.Rentals.Remove(Query.EQ("_id", new ObjectId(id)));
+            await ContextNew.Rentals.DeleteOneAsync(r => r.Id == id);
             return RedirectToAction("Index");
         }
 
