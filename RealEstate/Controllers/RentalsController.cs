@@ -56,7 +56,10 @@ namespace RealEstate.Controllers
 
         private Rental GetRental(string id)
         {
-            return Context.Rentals.FindOneById(new ObjectId(id));
+            return ContextNew.Rentals
+                //.Find(Builders<Rental>.Filter.Where(r => r.Id == id)).FirstOrDefault();
+                .Find(r => r.Id == id)
+                .FirstOrDefault();
         }
 
         [HttpPost]
