@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using RealEstate.App_Start;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace RealEstate.Controllers
@@ -8,10 +9,10 @@ namespace RealEstate.Controllers
     {
         private static RealEstateContextNewApi Context = new RealEstateContextNewApi();
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
             var buildInfoCommand = new BsonDocument("buildInfo", 1);
-            var buildInfo = Context.Database.RunCommand<BsonDocument>(buildInfoCommand);
+            var buildInfo = await Context.Database.RunCommandAsync<BsonDocument>(buildInfoCommand);
             return Content(buildInfo.ToJson(), "application/json");
         }
 
