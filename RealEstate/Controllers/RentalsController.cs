@@ -130,14 +130,14 @@ namespace RealEstate.Controllers
         }
 
         [HttpPost]
-        public ActionResult AttachImage(string id, HttpPostedFileBase file)
+        public async Task<ActionResult> AttachImage(string id, HttpPostedFileBase file)
         {
             var rental = GetRental(id);
             if (rental.HasImage())
             {
                 DeleteImage(rental);
             }
-            StoreImage(file, rental);
+            await StoreImageAsync(file, rental);
 
             return RedirectToAction("Index");
         }
@@ -149,27 +149,28 @@ namespace RealEstate.Controllers
             Context.Rentals.Save(rental);
         }
 
-        private void StoreImage(HttpPostedFileBase file, Rental rental)
+        private async Task StoreImageAsync(HttpPostedFileBase file, Rental rental)
         {
-            rental.ImageId = ObjectId.GenerateNewId().ToString();
-            Context.Rentals.Save(rental);
-
-            var options = new MongoGridFSCreateOptions
+            var bucket = new GridFSBucket(ContextNew.Database);
+            var options = new GridFSUploadOptions
             {
-                Id = rental.ImageId,
-                ContentType = file.ContentType
+                Metadata = new BsonDocument("contentType", file.ContentType)
             };
-            Context.Database.GridFS.Upload(file.InputStream, file.FileName, options);
+
+            var fileId = await bucket.UploadFromStreamAsync(file.FileName, file.InputStream, options);
+            rental.ImageId = fileId.ToString();
+
+            Context.Rentals.Save(rental);
         }
 
         public ActionResult GetImage(string id)
         {
-            var image = Context.Database.GridFS.FindOneById(id);
+            var image = Context.Database.GridFS.FindOneById(new ObjectId(id));
             if(image == null)
             {
                 return HttpNotFound();
             }
-            return File(image.OpenRead(), image.ContentType);
+            return File(image.OpenRead(), image.Metadata["contentType"].AsString);
         }
 
         public string PriceDistribution()
