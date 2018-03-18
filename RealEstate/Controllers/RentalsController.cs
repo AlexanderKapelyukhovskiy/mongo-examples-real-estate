@@ -205,5 +205,20 @@ namespace RealEstate.Controllers
                 "application/json");
 
         }
+
+        public ActionResult JoinWithLookup()
+        {
+            var report = ContextNew.Rentals.Aggregate()
+                .Lookup<Rental, ZipCode, RentalWithZipCode>(
+                    ContextNew.Database.GetCollection<ZipCode>("zips"),
+                    r => r.ZipCode,
+                    z => z.Id,
+                    d => d.ZipCodes)
+                .ToList();
+
+            return Content(report.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict }),
+                "application/json");
+
+        }
     }
 }

@@ -5,6 +5,11 @@ using System.Linq;
 
 namespace RealEstate.Rentals
 {
+    public class RentalWithZipCode : Rental
+    {
+        public ZipCode[] ZipCodes { get; set; }
+    }
+
     [BsonIgnoreExtraElements]
     public class ZipCode
     {
