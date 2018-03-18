@@ -172,7 +172,7 @@ namespace RealEstate.Controllers
 
         public string PriceDistribution()
         {
-            return new QueryPriceDistribution().Run(Context.Rentals).ToJson();
+            return new QueryPriceDistribution().RunAggregationFluent(ContextNew.Rentals).ToJson();
         }
     }
 }

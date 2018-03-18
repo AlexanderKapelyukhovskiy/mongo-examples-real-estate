@@ -1,6 +1,8 @@
-﻿using MongoDB.Bson;
+﻿using System.Collections;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RealEstate.Rentals
 {
@@ -9,6 +11,16 @@ namespace RealEstate.Rentals
         public QueryPriceDistribution()
         {
            
+        }
+
+        public IEnumerable RunAggregationFluent(IMongoCollection<Rental> retntals)
+        {
+            var distributions = retntals.Aggregate()
+                .Project(r => new {r.Price, PriceRange = (double) r.Price - (double) r.Price % 500})
+                .Group(r => r.PriceRange, g => new {GroupPriceRange = g.Key, Count = g.Count()})
+                .SortBy(r => r.GroupPriceRange)
+                .ToList();
+            return distributions;
         }
 
         public IEnumerable<BsonDocument> Run(MongoCollection<Rental> rentals)
