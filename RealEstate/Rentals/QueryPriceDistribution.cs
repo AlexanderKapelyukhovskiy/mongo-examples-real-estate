@@ -16,9 +16,20 @@ namespace RealEstate.Rentals
         public IEnumerable RunAggregationFluent(IMongoCollection<Rental> retntals)
         {
             var distributions = retntals.Aggregate()
-                .Project(r => new {r.Price, PriceRange = (double) r.Price - (double) r.Price % 500})
+                .Project(r => new {PriceRange = (double) r.Price - (double) r.Price % 500})
                 .Group(r => r.PriceRange, g => new {GroupPriceRange = g.Key, Count = g.Count()})
                 .SortBy(r => r.GroupPriceRange)
+                .ToList();
+            return distributions;
+        }
+
+        public IEnumerable RunLinq(IMongoCollection<Rental> retntals)
+        {
+            var distributions = retntals.AsQueryable()
+                .Select(r => new { PriceRange = (double)r.Price - (double)r.Price % 500 })
+                .GroupBy(r => r.PriceRange)
+                .Select(g => new { GroupPriceRange = g.Key, Count = g.Count() })
+                .OrderBy(r => r.GroupPriceRange)
                 .ToList();
             return distributions;
         }
