@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
@@ -8,6 +9,7 @@ using RealEstate.Rentals;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using MongoDB.Bson.IO;
 using MongoDB.Driver.Linq;
 
 namespace RealEstate.Controllers
@@ -173,6 +175,35 @@ namespace RealEstate.Controllers
         public string PriceDistribution()
         {
             return new QueryPriceDistribution().RunLinq(ContextNew.Rentals).ToJson();
+        }
+
+        public ActionResult JoinPreLookup()
+        {
+            var rentals = ContextNew.Rentals.Find(new BsonDocument()).ToList();
+            var rentalZips = rentals.Select(r => r.ZipCode).Distinct().ToArray();
+
+            var zipsById = ContextNew.Database.GetCollection<ZipCode>("zips")
+                .Find(z => rentalZips.Contains(z.Id))
+                .ToList()
+                .ToDictionary(d => d.Id);
+
+            ZipCode GetZipCode(string zip)
+            {
+                if (zip!= null && zipsById.ContainsKey(zip))
+                {
+                    return zipsById[zip];
+                }
+
+                return null;
+            }
+
+            var report = rentals
+                .Select(r => new {Rental = r, ZipCode = GetZipCode(r.ZipCode)})
+                .ToList();
+
+            return Content(report.ToJson(new JsonWriterSettings {OutputMode = JsonOutputMode.Strict}),
+                "application/json");
+
         }
     }
 }

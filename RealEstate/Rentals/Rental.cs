@@ -1,11 +1,23 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace RealEstate.Rentals
 {
+    [BsonIgnoreExtraElements]
+    public class ZipCode
+    {
+        [BsonId]
+        public string Id { get; set; }
+
+        [BsonElement("city")]
+        public string City { get; set; }
+
+        [BsonElement("state")]
+        public string State { get; set; }
+    }
+
     public class Rental
     {
         [BsonRepresentation(BsonType.ObjectId)]
@@ -17,6 +29,7 @@ namespace RealEstate.Rentals
         [BsonRepresentation(BsonType.Double)]
         public decimal Price { get; set; }
         public string ImageId { get; internal set; }
+        public string ZipCode { get; set; }
 
         public List<PriceAdjustment> Adjustments = new List<PriceAdjustment>();
 
@@ -31,6 +44,7 @@ namespace RealEstate.Rentals
             NumberOfRooms = postalRental.NumberOfRooms;
             Price = postalRental.Price;
             Address = (postalRental.Address ?? string.Empty).Split('\n').ToList();
+            ZipCode = postalRental.ZipCode;
         }
 
         internal void AdjustPrice(AdjustPrice adjustPrice)
