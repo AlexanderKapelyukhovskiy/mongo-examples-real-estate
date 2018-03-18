@@ -1,37 +1,35 @@
-﻿using MongoDB.Bson;
+﻿using System.Linq;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using RealEstate.App_Start;
 using RealEstate.Rentals;
-using System.Linq;
+
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using MongoDB.Driver.Linq;
 
 namespace RealEstate.Controllers
 {
     public class RentalsController : Controller
     {
         public readonly RealEstateContext Context = new RealEstateContext();
-        private readonly RealEstateContextNewApi ContextNew = new RealEstateContextNewApi();
+        public readonly RealEstateContextNewApi ContextNew = new RealEstateContextNewApi();
 
         public async Task<ActionResult> Index(RentalsFilter filters)
         {
-            FilterDefinition<Rental> filterDefinition = filters.ToFilterDefinitio();
-
-            var rentals = await ContextNew.Rentals
-                .Find(filterDefinition)
-                //.Sort(Builders<Rental>.Sort.Ascending(r => r.Price))
-                .Project(r => new RentalViewModel
+            var rentals = await FilterRental(filters)
+                .Select(r => new RentalViewModel
                 {
                     Id = r.Id,
+                    Address = r.Address,
                     Description = r.Description,
                     NumberOfRooms = r.NumberOfRooms,
                     Price = r.Price,
-                    Address = string.Join("\n", r.Address),
-                    Adjustments = r.Adjustments.Select(a => a.Describe()).LastOrDefault()
+                    //Adjustments = r.Adjustments.Select(a => a.Describe()).LastOrDefault()
                 })
-                .SortBy(r => r.Price)
+                .OrderBy(r => r.Price)
                 .ThenByDescending(r => r.NumberOfRooms)
                 .ToListAsync();
 
@@ -41,6 +39,23 @@ namespace RealEstate.Controllers
                 Filters = filters
             };
             return View(model);
+        }
+
+        private IMongoQueryable<Rental> FilterRental(RentalsFilter filter)
+        {
+            IMongoQueryable<Rental> rentals = ContextNew.Rentals.AsQueryable();
+
+            if (filter.MinimumRooms.HasValue)
+            {
+                rentals = rentals.Where(r => r.NumberOfRooms >= filter.MinimumRooms);
+            }
+
+            if (filter.PriceLimit.HasValue)
+            {
+                rentals = rentals.Where(r => r.Price <= filter.PriceLimit);
+            }
+
+            return rentals;
         }
 
         public ActionResult Post()

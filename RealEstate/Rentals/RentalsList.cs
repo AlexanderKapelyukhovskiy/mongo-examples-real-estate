@@ -17,7 +17,7 @@ namespace RealEstate.Rentals
         public string Description { get; set; }
         public int NumberOfRooms { get; set; }
         public decimal Price { get; set; }
-        public string Address { get; set; }
+        public List<string>  Address { get; set; }
         public string Adjustments { get; set; }
     }
 }
