@@ -22,8 +22,6 @@ namespace Tests
         [BsonElement("New")]
         public string Old { get; set; }
 
-        [BsonElement]
-        private string Encapsulated;
         [BsonRepresentation(BsonType.Double)]
         public decimal NetWorth { get; set; }
 

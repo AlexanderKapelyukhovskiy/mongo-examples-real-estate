@@ -40,7 +40,7 @@
 }
 @if (Model.HasImage())
 {
-    <img src="@Url.Action("GetImage", new { id = Model.ImageId})" /> 
+    <img src="@Url.Action("GetImageAsync", new { id = Model.ImageId})" /> 
 }
 <div>
     @Html.ActionLink("Back to List", "Index")

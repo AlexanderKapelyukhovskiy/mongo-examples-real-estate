@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
@@ -16,7 +15,6 @@ namespace RealEstate.Controllers
 {
     public class RentalsController : Controller
     {
-        public readonly RealEstateContext Context = new RealEstateContext();
         public readonly RealEstateContextNewApi ContextNew = new RealEstateContextNewApi();
 
         public async Task<ActionResult> Index(RentalsFilter filters)
@@ -135,42 +133,50 @@ namespace RealEstate.Controllers
             var rental = GetRental(id);
             if (rental.HasImage())
             {
-                DeleteImage(rental);
+                await DeleteImageAsync(rental);
             }
             await StoreImageAsync(file, rental);
 
             return RedirectToAction("Index");
         }
 
-        private void DeleteImage(Rental rental)
+        private async Task DeleteImageAsync(Rental rental)
         {
-            Context.Database.GridFS.DeleteById(rental.ImageId);
-            rental.ImageId = null;
-            Context.Rentals.Save(rental);
+            await ContextNew.ImageBucket.DeleteAsync(new ObjectId(rental.ImageId));
+            await SetImagelIdAsync(rental.Id, null);
+        }
+
+        private async Task SetImagelIdAsync(string rentalId, string imageId)
+        {
+            await ContextNew.Rentals.UpdateOneAsync(r => r.Id == rentalId,
+                Builders<Rental>.Update.Set(r => r.ImageId, imageId));
         }
 
         private async Task StoreImageAsync(HttpPostedFileBase file, Rental rental)
         {
-            var bucket = new GridFSBucket(ContextNew.Database);
             var options = new GridFSUploadOptions
             {
                 Metadata = new BsonDocument("contentType", file.ContentType)
             };
 
-            var fileId = await bucket.UploadFromStreamAsync(file.FileName, file.InputStream, options);
+            var fileId = await ContextNew.ImageBucket.UploadFromStreamAsync(file.FileName, file.InputStream, options);
             rental.ImageId = fileId.ToString();
 
-            Context.Rentals.Save(rental);
+            await SetImagelIdAsync(rental.Id, rental.ImageId);
         }
 
-        public ActionResult GetImage(string id)
+        public async Task<ActionResult> GetImageAsync(string id)
         {
-            var image = Context.Database.GridFS.FindOneById(new ObjectId(id));
-            if(image == null)
+            try
+            {
+                var stream = await ContextNew.ImageBucket.OpenDownloadStreamAsync(new ObjectId(id));
+                var contentType = stream.FileInfo.Metadata["contentType"].AsString;
+                return File(stream, contentType);
+            }
+            catch (GridFSFileNotFoundException)
             {
                 return HttpNotFound();
             }
-            return File(image.OpenRead(), image.Metadata["contentType"].AsString);
         }
 
         public string PriceDistribution()
